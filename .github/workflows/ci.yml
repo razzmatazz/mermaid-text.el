@@ -34,6 +34,16 @@ jobs:
           cache-from: type=gha,scope=emacs-${{ matrix.emacs }}
           cache-to: type=gha,mode=max,scope=emacs-${{ matrix.emacs }}
 
+      # Only to save fetching: `make deps' upgrades what it restores, as
+      # no file names the snapshots it installs.  Each run saves its own,
+      # and the next restores the newest.
+      - name: Cache Eldev dependencies
+        uses: actions/cache@v4
+        with:
+          path: .eldev
+          key: eldev-${{ matrix.emacs }}-${{ github.run_id }}
+          restore-keys: eldev-${{ matrix.emacs }}-
+
       - name: Install dependencies
         run: make deps
 
