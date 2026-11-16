@@ -62,9 +62,11 @@ Not yet on MELPA.  Until then, with `package-vc` (Emacs 29+):
 
 ## Development
 
-`make test` runs the tests, `make compile` byte-compiles with warnings
-as errors, and `make lint` runs checkdoc and package-lint.  They need
-[Eldev](https://github.com/emacs-eldev/eldev).
+`make ci` byte-compiles with warnings as errors, lints (checkdoc,
+package-lint, indentation) and runs the tests, each in a Docker or
+Podman container, with Emacs and [Eldev](https://github.com/emacs-eldev/eldev)
+built into the image.  `make ci EMACS=29.1` picks the release, and
+`make ci-all` runs every release CI does.
 
 ## License
 

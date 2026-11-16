@@ -1,10 +1,28 @@
 ; -*- mode: emacs-lisp; lexical-binding: t -*-
 
 (eldev-use-package-archive 'gnu)
-(eldev-use-package-archive 'melpa)
+;; Not `melpa', which is stable and snapshots both: `make deps' would
+;; fetch only the archive it installs from, and lint, offline, the other.
+(eldev-use-package-archive 'melpa-unstable)
 
 (setf eldev-lint-default '(doc package elisp))
+;; So `eldev prepare lint' installs them up front: `make ci' lints and
+;; tests at once, and a lint installing them meanwhile would race the test.
+(eldev-add-extra-dependencies 'lint 'package-lint 'elisp-lint)
+
+;; elisp-lint for what the others do not check: indentation, line length
+;; and whitespace.  Its byte-compile, which `make compile' does, would also
+;; write .elc files into the tree while the tests run.
 (with-eval-after-load 'elisp-lint
-  (setf elisp-lint-ignored-validators '("byte-compile" "checkdoc" "package-lint"))
+  (setf elisp-lint-ignored-validators
+        '("byte-compile" "check-declare" "checkdoc" "package-lint"))
   (setq-default indent-tabs-mode nil
-                fill-column 100))
+                fill-column 100)
+  ;; The indent check reindents the file's buffer, then diffs it with
+  ;; the file, which `make lint' mounts read-only.
+  (advice-add 'elisp-lint--indent :around
+              (lambda (indent) (let ((inhibit-read-only t)) (funcall indent)))))
+
+;; Every run rewrites .eldev/ever-initialized, and `make ci-all' runs
+;; several at once: with lock files, one would wait for good on another's.
+(setf create-lockfiles nil)

@@ -8,14 +8,40 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
-        emacs: ["29.1", "30.2", "snapshot"]
+        emacs: ["29.1", "30.2", "31.1"]
+
+    env:
+      EMACS: ${{ matrix.emacs }}
+
     steps:
       - uses: actions/checkout@v4
-      - uses: purcell/setup-emacs@master
+
+      - uses: docker/setup-buildx-action@v3
+
+      # As `make image', but caching the layers, as Emacs is built from
+      # source and that takes minutes.
+      - name: Build image
+        uses: docker/build-push-action@v6
         with:
-          version: ${{ matrix.emacs }}
-      - uses: emacs-eldev/setup-eldev@v1
-      - run: make ci
+          context: .
+          build-args: EMACS=${{ matrix.emacs }}
+          tags: mermaid-text-test:emacs-${{ matrix.emacs }}
+          load: true
+          cache-from: type=gha,scope=emacs-${{ matrix.emacs }}
+          cache-to: type=gha,mode=max,scope=emacs-${{ matrix.emacs }}
+
+      - name: Install dependencies
+        run: make deps
+
+      - name: Compile
+        run: make compile
+
+      - name: Lint
+        run: make lint
+
+      - name: Run ERT tests
+        run: make test

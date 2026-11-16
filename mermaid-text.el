@@ -52,7 +52,7 @@
 ;;;; Canvas
 
 (cl-defstruct (mermaid-text--canvas (:constructor mermaid-text--canvas ())
-                                       (:copier nil))
+                                    (:copier nil))
   (cells (make-hash-table :test #'equal))
   (width 0)
   (height 0)
@@ -205,7 +205,7 @@ A `plain' one is its line alone, two blanks either side."
                 (inner (- w 2)))
       (mermaid-text--put cv x y (concat (string tl) (make-string inner ?─) (string tr)))
       (mermaid-text--put cv x (+ y h -1)
-                            (concat (string bl) (make-string inner ?─) (string br)))
+                         (concat (string bl) (make-string inner ?─) (string br)))
       (dotimes (i (- h 2))
         (let* ((line (or (nth i lines) ""))
                (pad  (max 0 (- inner (string-width line))))
@@ -213,8 +213,8 @@ A `plain' one is its line alone, two blanks either side."
           (mermaid-text--put cv x (+ y 1 i) "│")
           (mermaid-text--put cv (+ x w -1) (+ y 1 i) "│")
           (mermaid-text--put cv (1+ x) (+ y 1 i)
-                                (concat (make-string left ?\s) line
-                                        (make-string (- pad left) ?\s)))))
+                             (concat (make-string left ?\s) line
+                                     (make-string (- pad left) ?\s)))))
       ;; A decision points outwards from the middle of its sides.
       (when (eq shape 'diamond)
         (mermaid-text--put cv x (+ y (/ (1- h) 2)) "<")
@@ -475,11 +475,11 @@ They gather where the first of them stands."
 A `plain' node is its label on one line, unwrapped and unboxed."
   (if (eq (nth 2 spec) 'plain)
       (mermaid-text--n :id (nth 0 spec) :lines (list (nth 1 spec)) :shape 'plain
-                          :w (+ (string-width (nth 1 spec)) 4) :h 1)
+                       :w (+ (string-width (nth 1 spec)) 4) :h 1)
     (let* ((lines (mermaid-text--wrap (nth 1 spec) maxlabel))
            (tw (max 1 (mermaid-text--lines-width lines))))
       (mermaid-text--n :id (nth 0 spec) :lines lines :shape (nth 2 spec)
-                          :w (max 5 (+ tw 4)) :h (+ 2 (length lines))))))
+                       :w (max 5 (+ tw 4)) :h (+ 2 (length lines))))))
 
 (defun mermaid-text--break-cycles (nodes edges)
   "Mark as reversed the edges of EDGES that close a cycle among NODES."
@@ -826,7 +826,7 @@ layer extents from `mermaid-text--place-main'."
 (defun mermaid-text--node-rect (n)
   "Return (X0 Y0 X1 Y1), the cells covered by node N."
   (let ((xy (mermaid-text--xy (mermaid-text--n-main n)
-                                 (mermaid-text--n-cross n))))
+                              (mermaid-text--n-cross n))))
     (list (car xy) (cdr xy)
           (+ (car xy) (mermaid-text--n-w n) -1)
           (+ (cdr xy) (mermaid-text--n-h n) -1))))
@@ -932,9 +932,9 @@ the chart cannot be drawn."
                         (nth 1 spec)))
          (edges (mapcar (lambda (e)
                           (mermaid-text--e :from (gethash (nth 0 e) table)
-                                              :to (gethash (nth 1 e) table)
-                                              :style (nth 2 e) :head (nth 3 e)
-                                              :tail (nth 4 e) :text (nth 5 e)))
+                                           :to (gethash (nth 1 e) table)
+                                           :style (nth 2 e) :head (nth 3 e)
+                                           :tail (nth 4 e) :text (nth 5 e)))
                         (nth 2 spec))))
     (dolist (g groups)
       (dolist (id (nth 2 g))
@@ -979,11 +979,11 @@ the chart cannot be drawn."
           (setq frames (mermaid-text--frames groups nodes))
           (dolist (n nodes)
             (let ((xy (mermaid-text--xy (mermaid-text--n-main n)
-                                           (mermaid-text--n-cross n))))
+                                        (mermaid-text--n-cross n))))
               (mermaid-text--draw-box cv (car xy) (cdr xy)
-                                         (mermaid-text--n-w n) (mermaid-text--n-h n)
-                                         (mermaid-text--n-lines n)
-                                         (mermaid-text--n-shape n))))
+                                      (mermaid-text--n-w n) (mermaid-text--n-h n)
+                                      (mermaid-text--n-lines n)
+                                      (mermaid-text--n-shape n))))
           (dolist (e edges)
             (pcase-let ((`(,pts ,smark ,emark) (mermaid-text--route e starts sizes)))
               (mermaid-text--draw-line
@@ -1183,7 +1183,7 @@ IDS lists the participants; numbering is added to messages if AUTO."
                  (when auto (cl-incf num))
                  (list 'msg (funcall idx from) (funcall idx to)
                        (mermaid-text--wrap (if auto (format "%d. %s" num text) text)
-                                              maxlabel)
+                                           maxlabel)
                        dashed head))
                 (`(note ,kind ,nids ,text)
                  (list 'note kind (mapcar idx nids) (mermaid-text--wrap text maxlabel)))
@@ -1264,12 +1264,12 @@ EVS are the prepared events and HW the header widths."
                  (let ((x (cx a)) (rows (max 2 (length lines))))
                    (mermaid-text--put cv x y (concat "├" (make-string 3 (aref dash 0)) "┐"))
                    (mermaid-text--put cv x (1+ y)
-                                         (concat "┤"
-                                                 (pcase head
-                                                   ('arrow "◄")
-                                                   ('cross "✕")
-                                                   (_ (string (aref dash 0))))
-                                                 (make-string 2 (aref dash 0)) "┘"))
+                                      (concat "┤"
+                                              (pcase head
+                                                ('arrow "◄")
+                                                ('cross "✕")
+                                                (_ (string (aref dash 0))))
+                                              (make-string 2 (aref dash 0)) "┘"))
                    (cl-loop for l in lines for i from 0
                             do (mermaid-text--put cv (+ x 6) (+ y i) l))
                    (reach a (+ 7 lw))
